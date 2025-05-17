@@ -1,4 +1,5 @@
 import React, { use, useState } from 'react';
+import { Link } from 'react-router';
 
 const Users = ({usersPromise}) => {
     const initialUsers  = use(usersPromise);
@@ -24,10 +25,27 @@ const Users = ({usersPromise}) => {
             console.log('data after creating user in the db', data)
             if(data.insertedId){
                 newUser._id = data.insertedId;
-                const newsUsers = [...users, newUser];
-                setUsers(newsUsers);
+                const newUsers = [...users, newUser]; // ✅ fixed here
+                setUsers(newUsers);
                 alert('User added successfully.')
                 e.target.reset();
+            }
+        })
+    }
+
+    // delete
+    const handleUserDelete = (id) =>{
+        console.log('Delete this user',id)
+        fetch(`http://localhost:3000/users/${id}`,{
+            method:'DELETE'
+
+        } )
+        .then(res => res.json())
+        .then (data =>{
+            if(data.deletedCount){
+                  const remainingUsers = users.filter(user => user._id !== id);
+                  setUsers(remainingUsers);
+                console.log('after delete', data)
             }
         })
     }
@@ -36,6 +54,7 @@ const Users = ({usersPromise}) => {
         <div>
             {/* add user */}
            <div>
+            <h4>Users: {users.length}</h4>
             <form onSubmit={handleUser}>
                 <input type="text" name='name' />
                 <br />
@@ -47,7 +66,10 @@ const Users = ({usersPromise}) => {
            {/* view users */}
            <div>
             {
-                users.map(user => <p key={user._id}>{user.name} : {user.email}</p>)
+                users.map(user => <p key={user._id}>{user.name} : {user.email}
+                <Link to={`/users/${user._id}`}>Details</Link>
+                <button onClick={() => handleUserDelete(user._id)}>X</button>
+                </p>)
             }
            </div>
         </div>
